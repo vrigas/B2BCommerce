@@ -2,6 +2,7 @@
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <version>56.0</version>
     <types>
+        <members>TokenizeCard</members>
         <members>sdasa</members>
         <name>ApexClass</name>
     </types>

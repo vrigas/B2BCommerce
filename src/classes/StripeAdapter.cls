@@ -91,8 +91,6 @@ global class StripeAdapter implements commercepayments.PaymentGatewayAdapter {
         // API: https://stripe.com/docs/api/charges/create        
         commercepayments.AuthApiPaymentMethodRequest paymentMethod = authRequest.paymentMethod;
 
-        System.debug(JSON.serialize(authRequest));
-        
         // get the cardPaymentMethod object with the token
         QueryUtils q = new QueryUtils(CardPaymentMethod.SObjectType);
         q.getSelectClause().addField('GatewayToken', false);
@@ -236,6 +234,22 @@ global class StripeAdapter implements commercepayments.PaymentGatewayAdapter {
         
         return http.send(request);
     }
+
+    private static HttpResponse doPostBE(String path, Map<String, String> params) {
+        commercepayments.PaymentsHttp http = new commercepayments.PaymentsHttp();
+        HttpRequest request = new HttpRequest();
+        request.setEndpoint('/v1/' + path);
+
+        Blob headerValue = Blob.valueOf('{!$Credential.Username}');
+        String authorizationHeader = 'Basic ' + EncodingUtil.base64Encode(headerValue);
+        request.setHeader('Authorization', authorizationHeader);
+        
+        request.setMethod('POST');
+        request.setHeader('Content-Type', 'application/x-www-form-urlencoded');
+        request.setBody(urlEncodedParams(params));
+        
+        return http.send(request);
+    }
     
     private static String urlEncodedParams(Map<String, String> params) {
         String body = '';
@@ -259,10 +273,10 @@ global class StripeAdapter implements commercepayments.PaymentGatewayAdapter {
     
     private static Long toStripeCurrencyUnits(String currencyIsoCodeLC, Double amount) {
         // see https://stripe.com/docs/currencies#zero-decimal
-        if (currencyIsoCodeLC.equals('usd')) {
+        // if (currencyIsoCodeLC.equals('usd')) {
             return Math.roundToLong(amount * 100); // TODO: make sure there are no rounding/precission issues
-        }
-        throw new StripeValidationException('toStripeCurrencyUnits: TODO: ' + currencyIsoCodeLC);  
+        // }
+        // throw new StripeValidationException('toStripeCurrencyUnits: TODO: ' + currencyIsoCodeLC);  
     }
     
     private static commercepayments.SalesforceResultCodeInfo toCodeInfo(commercepayments.SalesforceResultCode code) {
